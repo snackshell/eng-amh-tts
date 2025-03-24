@@ -7,15 +7,11 @@ language_dict = {
     "Amharic": {
         "Ameha": "am-ET-AmehaNeural",
         "Mekdes": "am-ET-MekdesNeural"
-    },
-    "English": {
-        "Ryan": "en-GB-RyanNeural",
-        "Clara": "en-CA-ClaraNeural"
     }
 }
 
-async def text_to_speech_edge(text, language, speaker):
-    voice = language_dict[language][speaker]
+async def text_to_speech_edge(text, speaker):
+    voice = language_dict["Amharic"][speaker]
     
     try:
         communicate = edge_tts.Communicate(text, voice)
@@ -27,17 +23,13 @@ async def text_to_speech_edge(text, language, speaker):
         return tmp_path
         
     except asyncio.TimeoutError:
-        error_msg = "ስህተት: ጊዜ አልቋል። እባክዎ እንደገና ይሞክሩ። (Timeout)" if language == "Amharic" else "Error: Timeout. Please try again."
+        error_msg = "ስህተት: ጊዜ አልቋል። እባክዎ እንደገና ይሞክሩ። (Timeout)"
         raise gr.Error(error_msg)
     except Exception as e:
-        error_msg = f"ስህተት: ድምፅ መፍጠር አልተቻለም።\nError: {str(e)}" if language == "Amharic" else f"Error: Failed to generate audio.\nDetails: {str(e)}"
+        error_msg = f"ስህተት: ድምፅ መፍጠር አልተቻለም።\nError: {str(e)}"
         raise gr.Error(error_msg)
 
-def update_speakers(language):
-    speakers = list(language_dict[language].keys())
-    return gr.Dropdown(choices=speakers, value=speakers[0])
-
-with gr.Blocks(title="Amharic & English TTS") as demo:
+with gr.Blocks(title="Amharic TTS", theme=gr.themes.Soft()) as demo:
     gr.HTML("""
     <style>
         h1 { 
@@ -46,52 +38,68 @@ with gr.Blocks(title="Amharic & English TTS") as demo:
             background: linear-gradient(45deg, #FF007F, #2E86C1);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+        }
+        .gradio-container {
+            background: #f8f9fa !important;
         }
         .gradio-button { 
             background: linear-gradient(45deg, #FF007F, #2E86C1) !important; 
-            color: white !important; 
+            color: white !important;
+            border-radius: 8px !important;
+            padding: 12px 24px !important;
         }
         .gradio-textbox, .gradio-dropdown { 
-            border-color: #2E86C1 !important; 
+            border-color: #2E86C1 !important;
+            border-radius: 8px !important;
+            padding: 12px !important;
+        }
+        .gradio-label {
+            color: #2E86C1 !important;
+            font-weight: 600 !important;
+        }
+        .prose {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .gradio-row {
+            gap: 20px;
         }
     </style>
-    <center><h1>Amharic & English Text-to-Speech</h1></center>
+    <center>
+        <h1>የአማርኛ ጽሑፍ ወደ ድምፅ ቀይር</h1>
+    </center>
     """)
 
     with gr.Row():
-        with gr.Column():
-            language = gr.Dropdown(
-                choices=["Amharic", "English"],
-                value="Amharic",
-                label="Select Language / ቋንቋ ይምረጡ"
-            )
+        with gr.Column(scale=1):
             input_text = gr.Textbox(
                 lines=5, 
-                label="Enter Text / ጽሑፍ ያስገቡ",
-                placeholder="Type your text here... / ጽሑፍዎን ይጻፉ..."
+                label="ጽሑፍ ያስገቡ",
+                placeholder="ድምፅ ለመፍጠር ጽሑፍዎን ይጻፉ..."
             )
             speaker = gr.Dropdown(
                 choices=["Ameha", "Mekdes"],
                 value="Ameha",
-                label="Select Speaker / አርቲስት ይምረጡ"
+                label="ድምፁን የሚያሰማ አርቲስት"
             )
-            run_btn = gr.Button(value="Generate Audio / ድምፅ ፍጠር", variant="primary")
+            run_btn = gr.Button(
+                value="ድምፅ ፍጠር", 
+                variant="primary",
+                scale=1
+            )
 
-        with gr.Column():
+        with gr.Column(scale=1):
             output_audio = gr.Audio(
                 type="filepath",
-                label="Generated Audio / የተፈጠረ ድምፅ"
+                label="የተፈጠረ ድምፅ",
+                elem_classes="output-audio"
             )
-
-    language.change(
-        update_speakers,
-        inputs=language,
-        outputs=speaker
-    )
 
     run_btn.click(
         text_to_speech_edge,
-        inputs=[input_text, language, speaker],
+        inputs=[input_text, speaker],
         outputs=output_audio
     )
 
