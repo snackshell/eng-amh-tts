@@ -7,7 +7,7 @@
 <div align="center">
   <img src="assets/demo.png" alt="Bilingual TTS Interface" width="800">
   <br>
-  <em>Convert text to natural speech in Amharic and English</em>
+  <em>Convert text to natural speech in Amharic and English For Free.</em>
 </div>
 
 ## ✨ Features
